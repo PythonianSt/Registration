@@ -10,13 +10,13 @@ module.exports = async (req,res) => {
   if (req.method !== 'POST') return res.status(405).json({error:'Method not allowed'});
   try {
     const b = req.body || {};
-    const required = ['student_or_staff_id','email','national_id','name_th','sex','dob','faculty','weight_kg','height_cm','phone','family_name','family_phone','family_relation','blood_group','name_en','address_idcard'];
+    const required = ['student_or_staff_id','name_th','phone'];
     for (const k of required) if (!clean(b[k])) return res.status(400).json({error:`กรุณากรอก ${k}`});
-    if (!validEmail(b.email)) return res.status(400).json({error:'รูปแบบอีเมลไม่ถูกต้อง'});
-    if (!digits(b.phone) || !digits(b.family_phone)) return res.status(400).json({error:'เบอร์โทรต้องเป็นตัวเลขเท่านั้น'});
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(b.dob)) return res.status(400).json({error:'วันเกิดไม่ถูกต้อง'});
-    if (!['ชาย','หญิง','ไม่ระบุ'].includes(b.sex)) return res.status(400).json({error:'เพศไม่ถูกต้อง'});
-    if (!['O','A','B','AB'].includes(b.blood_group)) return res.status(400).json({error:'กรุ๊ปเลือดไม่ถูกต้อง'});
+    if (clean(b.email) && !validEmail(b.email)) return res.status(400).json({error:'รูปแบบอีเมลไม่ถูกต้อง'});
+    if (!digits(b.phone) || (clean(b.family_phone) && !digits(b.family_phone))) return res.status(400).json({error:'เบอร์โทรต้องเป็นตัวเลขเท่านั้น'});
+    if (clean(b.dob) && !/^\d{4}-\d{2}-\d{2}$/.test(b.dob)) return res.status(400).json({error:'วันเกิดไม่ถูกต้อง'});
+    if (clean(b.sex) && !['ชาย','หญิง','ไม่ระบุ'].includes(b.sex)) return res.status(400).json({error:'เพศไม่ถูกต้อง'});
+    if (clean(b.blood_group) && !['O','A','B','AB'].includes(b.blood_group)) return res.status(400).json({error:'กรุ๊ปเลือดไม่ถูกต้อง'});
     const now = new Date().toISOString();
     const id = crypto.randomUUID();
     const value = await mutate(async rows => {
